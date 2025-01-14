@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload CSV</title>
+</head>
+<body>
+    <h1>Upload CSV untuk Efaktur</h1>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+        <label for="Tin">TIN (16 karakter):</label><br>
+        <input type="text" id="Tin" name="Tin" maxlength="16" required><br><br>
+        <label for="file">Pilih file CSV:</label><br>
+        <input type="file" id="file" name="file" accept=".csv" required><br><br>
+        <button type="submit">Proses</button>
+    </form>
+</body>
+</html>
