@@ -83,7 +83,7 @@ try:
         return buyers, goods
 
     # Fungsi untuk menghasilkan output list of dict setiap buyer beserta itemnya
-    def generate_buyer_with_items(buyers, goods):
+    def generate_buyer_with_items_xml(buyers, goods):
         ListInvoice = []
 
         for buyer in buyers:
@@ -109,21 +109,23 @@ try:
                     {'GoodService':goods.get(buyer_name, [])}
                 ]
             }})
-        data = {'ListOfTaxInvoice':ListInvoice}
+        
         return ListInvoice
+
+    def generate_buyer_with_items_excel(buyers, goods):
+        pass
 
     # Jalankan fungsi dengan file CSV yang diunggah
     Tin = '0015897184432000'
     if len(Tin) != 16:
-        raise ValueError("TIN Tidak 16 karakter")
+        raise ValueError("NPWP Tidak 16 karakter")
     
     file_path = 'efaktur_import_test.csv'
     buyers, goods = process_efaktur_csv(file_path, Tin)
 
-    buyers, goods = process_efaktur_csv(file_path, Tin)
-    List_items = generate_buyer_with_items(buyers, goods)
-    buyer_with_items = {'TIN': Tin, 'ListOfTaxInvoice':{'TaxInvoice':List_items}}
-
+    List_items_xml = generate_buyer_with_items_xml(buyers, goods)
+    buyer_with_items = {'TIN': Tin, 'ListOfTaxInvoice':{'TaxInvoice':List_items_xml}}
+    print(buyer_with_items)
     def generate_xml(buyer_with_items):
         import re
         xml_body = dict2xml(buyer_with_items)
@@ -134,9 +136,8 @@ try:
 </TaxInvoiceBulk>"""
         return xml_output
 
-    buyer_with_items['ListOfTaxInvoice'] = List_items
     xml_output = generate_xml(buyer_with_items)
     
-    print(xml_output)
+    
 except Exception as e:
     print(e)
