@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, has_request_context
+from flask import Flask, jsonify, request, has_request_context, render_template
 from config import ApplicationConfig
 from flask_apispec.extension import FlaskApiSpec
 from flask_cors import CORS
@@ -137,6 +137,10 @@ def handle_error(e):
     app.logger.error(str(e))
     return jsonify(error=str(e)), code
 Session(app)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 with app.app_context():
     docs = FlaskApiSpec(app)

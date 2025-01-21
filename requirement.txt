@@ -17,3 +17,4 @@ openpyxl
 pyjwt
 sshtunnel
 dict2xml
+pandas
