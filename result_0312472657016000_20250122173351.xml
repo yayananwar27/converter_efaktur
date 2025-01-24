@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<TaxInvoiceBulk xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <TIN>0312472657016000</TIN>
+    <ListOfTaxInvoice>
+        <TaxInvoice>
+            <TaxInvoiceDate>2025-01-01</TaxInvoiceDate>
+            <TaxInvoiceOpt>Normal</TaxInvoiceOpt>
+            <TrxCode>04</TrxCode>
+            <AddInfo/>
+            <CustomDoc/>
+            <RefDesc>INV/FMI-0339/01/01.25</RefDesc>
+            <FacilityStamp/>
+            <SellerIDTKU>0312472657016000000000</SellerIDTKU>
+            <BuyerTin>0016904047058000</BuyerTin>
+            <BuyerDocument>TIN</BuyerDocument>
+            <BuyerCountry>IDN</BuyerCountry>
+            <BuyerDocumentNumber>-<BuyerDocumentNumber/>
+            <BuyerName>PT. PASIFIKTEL INDOTAMA<BuyerName/>
+            <BuyerAdress>GD. NCR LT. 4 JL. MT HARYONO KAV. 27 TEBET TIMUR TEBET JAKARTA SELATAN<BuyerAdress/>
+            <BuyerEmail>iwan.nugroho@paktel.co.id</BuyerEmail>
+            <BuyerIDTKU>0016904047058000000000</BuyerIDTKU>
+            <ListOfGoodService>
+                <GoodService>
+                    <Opt>B</Opt>
+                    <Code>000000</Code>
+                    <Name>Periode JANUARI 2025, Kapasitas Baru 30 Mbps,Untuk site PT Hexindo Adiperkasa, Jl. Pulo Kambing II Kav I-II No. 33</Name>
+                    <Unit>UM.0024</Unit>
+                    <Price>9000000</Price>
+                    <Qty>1</Qty>
+                    <TotalDiscount>0</TotalDiscount>
+                    <TaxBase>9000000.0</TaxBase>
+                    <OtherTaxBase>8250000.0</OtherTaxBase>
+                    <VATRate>12</VATRate>
+                    <VAT>990000.0</VAT>
+                    <STLGRate>0</STLGRate>
+                    <STLG>0</STLG>
+                </GoodService>
+            </ListOfGoodService>
+        </TaxInvoice>
+    </ListOfTaxInvoice>
+</TaxInvoiceBulk>

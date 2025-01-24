@@ -39,7 +39,7 @@ def parse_invoices(data):
             invoice_dict = {}
             for _, row in data.iterrows():
                 invoice_no = row['No Invoice 3'].strip("'")
-                current_app.logger.debug(invoice_no)
+                # current_app.logger.debug(invoice_no)
                 if invoice_no not in invoice_dict:
                     bulan_id = {
                         "Januari": "01", "Februari": "02", "Maret": "03", "April": "04",
@@ -78,9 +78,13 @@ def parse_invoices(data):
                     except Exception as e:
                         abort(500, npwp_pembeli)
 
-                    email_pembeli = data_pembeli['email_tagihan'].replace(';','').replace(',','')
-                    if len(email_pembeli.split(' ')) > 1:
-                        email_pembeli = email_pembeli.split(' ')[0]
+                    # email_pembeli = data_pembeli['email_tagihan'].replace(';','').replace(',','')
+                    # if len(email_pembeli.split(' ')) > 1:
+                    #     email_pembeli = email_pembeli.split(' ')[0]
+
+                    email_pembeli = data_pembeli['email_tagihan']
+                    # if len(email_pembeli.split(' ')) > 1:
+                    #     email_pembeli = email_pembeli.split(' ')[0]
 
                     invoice_dict[invoice_no] = {
                         'seller_tin':data_pembeli['kategori']['seller']['tin'],
@@ -130,6 +134,12 @@ def parse_invoices(data):
             return list(invoice_dict.values())
 
 def process_list_inv(list_invoices):
+
+    costum_nitku = [
+        {'tin':'0353379258085000', 'nitku':'3173020407770008000000'},
+        {'tin':'0015730104076000', 'nitku':'0015730104076000000003'}
+    ]
+
     data = {'TIN':None}
     invoices = []
     for invoice in list_invoices:
@@ -164,6 +174,10 @@ def process_list_inv(list_invoices):
 
         goods = invoice['pembelian']
 
+        for nitku in costum_nitku:
+            if BuyerTin == nitku['tin']:
+                BuyerIDTKU = nitku['nitku']
+                break
 
         total = 0
         grand_total = 0
@@ -176,20 +190,20 @@ def process_list_inv(list_invoices):
             other_tax_base = round(tax_base*11/12,2)
             vat = round(other_tax_base*12/100,2)
 
-            if invoice['no_invoice'] == 'INV/FMI-0196/01/01.25':
+            # if invoice['no_invoice'] == 'INV/FMI-0196/01/01.25':
             #     qty = int(good['qty'])
             #     discount = good['diskon']
             #     tax_base = (good['harga_satuan']*qty)-discount
             #     other_tax_base = tax_base*11/12
             #     vat = other_tax_base*12/100
-                print(f'{good['harga_satuan']}, {tax_base}, {other_tax_base}, {vat}, {(vat+tax_base)}')
+            #     print(f'{good['harga_satuan']}, {tax_base}, {other_tax_base}, {vat}, {(vat+tax_base)}')
             
             dpp_lain += other_tax_base
             total += tax_base
             grand_total += (vat+tax_base)
             
             #if invoice['no_invoice'] == 'INV/FMI-0196/01/01.25':
-            print(f'{total}, {grand_total}, {dpp_lain}')
+            # print(f'{total}, {grand_total}, {dpp_lain}')
 
             list_goods.append(
                 {
@@ -236,7 +250,7 @@ def process_list_inv(list_invoices):
                 'BuyerCountry': 'IDN',
                 'BuyerDocumentNumber': BuyerDocNum,
                 'BuyerName': invoice['nama_pembeli'],
-                'BuyerAddress': invoice['alamat_pembeli'],
+                'BuyerAdress': invoice['alamat_pembeli'],
                 'BuyerEmail':invoice['email_pembeli'],
                 'BuyerIDTKU':BuyerIDTKU,
                 'ListOfGoodService':[
@@ -249,11 +263,79 @@ def process_list_inv(list_invoices):
     return data
 
 def generate_xml(buyer_with_items):
-    xml_body = dict2xml(buyer_with_items)
-    xml_body_cleaned = re.sub(r"<(\w+)>None</\1>", r"<\1 />", xml_body)
+    #xml_body = dict2xml(buyer_with_items)
+    #xml_body_cleaned = re.sub(r"<(\w+)>None</\1>", r"<\1 />", xml_body)
+    list_taxinvoice = buyer_with_items['ListOfTaxInvoice']['TaxInvoice']
+
+    xml_taxinvoice = ''
+    for taxinvoice in list_taxinvoice:
+        xml_goods = ''
+        list_goods = taxinvoice['ListOfGoodService'][0]['GoodService']
+        for good in list_goods:
+            xml_goods += f'''                <GoodService>
+                    <Opt>{good['Opt']}</Opt>
+                    <Code>{good['Code']}</Code>
+                    <Name>{good['Name']}</Name>
+                    <Unit>{good['Unit']}</Unit>
+                    <Price>{good['Price']}</Price>
+                    <Qty>{good['Qty']}</Qty>
+                    <TotalDiscount>{good['TotalDiscount']}</TotalDiscount>
+                    <TaxBase>{good['TaxBase']}</TaxBase>
+                    <OtherTaxBase>{good['OtherTaxBase']}</OtherTaxBase>
+                    <VATRate>{good['VATRate']}</VATRate>
+                    <VAT>{good['VAT']}</VAT>
+                    <STLGRate>{good['STLGRate']}</STLGRate>
+                    <STLG>{good['STLG']}</STLG>
+                </GoodService>
+'''
+        
+        AddInfo = '<AddInfo/>'
+        if taxinvoice['AddInfo'] != None:
+            AddInfo = f"<AddInfo>{taxinvoice['AddInfo']}</AddInfo>"
+
+        CustomDoc = '<CustomDoc/>'
+        if taxinvoice['CustomDoc'] != None:
+            CustomDoc = f"<CustomDoc>{taxinvoice['CustomDoc']}</CustomDoc>"
+
+        RefDesc = '<RefDesc/>'
+        if taxinvoice['RefDec'] != None:
+            RefDesc = f"<RefDesc>{taxinvoice['RefDec']}</RefDesc>"
+            
+        FacilityStamp = '<FacilityStamp/>'
+        if taxinvoice['FacilityStamp'] != None:
+            FacilityStamp = f"<FacilityStamp>{taxinvoice['FacilityStamp']}</FacilityStamp>"
+
+        BuyerEmail = '<BuyerEmail/>'
+        if taxinvoice['BuyerEmail'] != None:
+            BuyerEmail = f"<BuyerEmail>{taxinvoice['BuyerEmail']}</BuyerEmail>"
+
+        xml_taxinvoice += f'''        <TaxInvoice>
+            <TaxInvoiceDate>{taxinvoice['TaxInvoiceDate']}</TaxInvoiceDate>
+            <TaxInvoiceOpt>{taxinvoice['TaxInvoiceOpt']}</TaxInvoiceOpt>
+            <TrxCode>{taxinvoice['TrxCode']}</TrxCode>
+            {AddInfo}
+            {CustomDoc}
+            {RefDesc}
+            {FacilityStamp}
+            <SellerIDTKU>{taxinvoice['SellerIDTKU']}</SellerIDTKU>
+            <BuyerTin>{taxinvoice['BuyerTin']}</BuyerTin>
+            <BuyerDocument>{taxinvoice['BuyerDocument']}</BuyerDocument>
+            <BuyerCountry>{taxinvoice['BuyerCountry']}</BuyerCountry>
+            <BuyerDocumentNumber>{taxinvoice['BuyerDocumentNumber']}</BuyerDocumentNumber>
+            <BuyerName>{taxinvoice['BuyerName']}</BuyerName>
+            <BuyerAdress>{taxinvoice['BuyerAdress']}</BuyerAdress>
+            {BuyerEmail}
+            <BuyerIDTKU>{taxinvoice['BuyerIDTKU']}</BuyerIDTKU>
+            <ListOfGoodService>
+{xml_goods}            </ListOfGoodService>
+        </TaxInvoice>
+'''
+    
     xml_output = f"""<?xml version='1.0' encoding='utf-8'?>
 <TaxInvoiceBulk xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">
-{xml_body_cleaned}
+    <TIN>{buyer_with_items['TIN']}</TIN>
+    <ListOfTaxInvoice>
+{xml_taxinvoice}    </ListOfTaxInvoice>
 </TaxInvoiceBulk>"""
     return xml_output
 
@@ -282,6 +364,7 @@ class ConverterCsvApi(MethodResource, Resource):
         data = process_list_inv(invoice_data)
         current_app.logger.debug('INVOICE PROSES SELESAI')
         #return jsonify(data)
+        
         xml_output = generate_xml(data)
 
         output_path = os.path.join(UPLOAD_FOLDER, f"{data['TIN']}_{timestamp}.xml")
