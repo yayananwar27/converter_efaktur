@@ -100,6 +100,14 @@ def parse_invoices(data):
                         'pembelian': []
                     }
 
+                    if 'IDF' in invoice_dict[invoice_no]['no_invoice']:
+                        from .models import TblNpwpSellerModel
+                        data_idf = TblNpwpSellerModel.query.filter_by(id=3).first()
+                        data_idf_dict = data_idf.to_dict()
+                        if invoice_dict[invoice_no]['seller_tin'] != data_idf_dict['tin']:
+                            invoice_dict[invoice_no]['seller_tin'] = data_idf_dict['tin']
+                            invoice_dict[invoice_no]['seller_nitku'] = data_idf_dict['nitku']
+                        
                 harga_satuan = 0
                 try:
                     qty = int(row['Qty'].strip("'"))
@@ -145,6 +153,7 @@ def process_list_inv(list_invoices):
     for invoice in list_invoices:
         if data['TIN'] == None:
             data['TIN'] = invoice['seller_tin']
+            
         elif data['TIN'] != invoice['seller_tin']:
             current_app.logger.error(invoice['no_invoice'])
             current_app.logger.error(f'TIN {data['TIN']} dan {invoice['seller_tin']}')
@@ -205,6 +214,12 @@ def process_list_inv(list_invoices):
             #if invoice['no_invoice'] == 'INV/FMI-0196/01/01.25':
             # print(f'{total}, {grand_total}, {dpp_lain}')
 
+            restrict = ['&','<', '>']
+
+            for terlarang in restrict:
+                if terlarang in good['keterangan']:
+                    abort(400, f'Ada karakter yang tidak diizinkan : {terlarang} pada {good['keterangan']}')
+
             list_goods.append(
                 {
                     'Opt':'B',
@@ -226,14 +241,14 @@ def process_list_inv(list_invoices):
         if round(invoice['total'], 2) != total:
             current_app.logger.error(invoice['no_invoice'])
             current_app.logger.error(f'{invoice["total"]} != {total}')    
-            abort(400, 'Ada yanga salah di total')
+            abort(400, f'{invoice['no_invoice']} Ada yanga salah di total')
 
         if round(invoice['grand_total'],2) != int(round_up(grand_total)):
             current_app.logger.error(invoice['no_invoice'])
             if round(invoice['grand_total'],2) != int(round_up(grand_total)+10000):
                 current_app.logger.error(f'{invoice["grand_total"]} != {round(grand_total, 2)}')
                 current_app.logger.error(f'{invoice["grand_total"]} != {round(grand_total+10000, 2)}')
-                abort(400, 'Ada yang salah di Grand Total')
+                abort(400, f'{invoice['no_invoice']} Ada yang salah di Grand Total')
 
         invoices.append(
             {

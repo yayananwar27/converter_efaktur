@@ -22,6 +22,7 @@ class TblCustomer2015Model(db.Model):
     npwp = db.Column(db.String(255), nullable=True)
     nama_npwp = db.Column(db.String(255), nullable=True)
     alamat_npwp = db.Column(db.Text, nullable=True)
+    disabled = db.Column(db.Integer, default=False)
 
     def to_dict(self):
         data = {
@@ -31,7 +32,8 @@ class TblCustomer2015Model(db.Model):
             'alamat':self.alamat,
             'nama_npwp':self.nama_npwp,
             'alamat_npwp':self.alamat_npwp,
-            'npwp':self.npwp
+            'npwp':self.npwp,
+            'disabled':self.disabled
         }
         kateg_exists = TblKategoriCustomerModel.query.filter_by(code=self.url_1).first()
         if kateg_exists:

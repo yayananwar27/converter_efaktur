@@ -150,6 +150,10 @@ with app.app_context():
     app.register_blueprint(appconverter_api, url_prefix='/converter')
     init_docs_appconverter(docs)
 
+    #app rudi
+    from apprudi.app import init_docs as init_docs_apprudi, apprudi_api
+    app.register_blueprint(apprudi_api, url_prefix='/apprudi')
+    init_docs_apprudi(docs)
 
 if __name__ == "__main__":
     app.run('0.0.0.0', port=5000,debug=True)
