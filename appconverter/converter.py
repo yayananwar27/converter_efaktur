@@ -51,14 +51,17 @@ def parse_invoices(data):
 
                     pembeli_exists = TblCustomerInvoice2015Model.query.filter_by(no_invoice_1=invoice_no).first()
                     if not pembeli_exists:
-                        pembeli_exists = TblCustomer2015Model.query.filter_by(kepada=row['Kepada'].strip("'")).order_by(TblCustomer2015Model.id.desc()).first()
+                        print(row['Kepada'].strip("'"))
+                        pembeli_exists = TblCustomer2015Model.query.filter_by(id=row['Customer ID'].strip("'")).order_by(TblCustomer2015Model.id.desc()).first()
                         if not pembeli_exists:
-                            id_pel = row['ID Pelanggan'].strip("'")+' %'
-                            pembeli_exists = TblCustomer2015Model.query.filter(
-                                TblCustomer2015Model.alamat.like(id_pel)
-                                ).order_by(TblCustomer2015Model.id.desc()).first()
+                            pembeli_exists = TblCustomer2015Model.query.filter_by(kepada=row['Kepada'].strip("'")).order_by(TblCustomer2015Model.id.desc()).first()
                             if not pembeli_exists:
-                                abort(404, row['No Invoice 3'])
+                                id_pel = row['ID Pelanggan'].strip("'")+' %'
+                                pembeli_exists = TblCustomer2015Model.query.filter(
+                                    TblCustomer2015Model.alamat.like(id_pel)
+                                    ).order_by(TblCustomer2015Model.id.desc()).first()
+                                if not pembeli_exists:
+                                    abort(404, row['No Invoice 3'])
 
                     data_pembeli = pembeli_exists.to_dict()
                     nama_pembeli = data_pembeli['kepada']
@@ -107,7 +110,16 @@ def parse_invoices(data):
                         if invoice_dict[invoice_no]['seller_tin'] != data_idf_dict['tin']:
                             invoice_dict[invoice_no]['seller_tin'] = data_idf_dict['tin']
                             invoice_dict[invoice_no]['seller_nitku'] = data_idf_dict['nitku']
-                        
+                    
+                    if 'FMI' in invoice_dict[invoice_no]['no_invoice']:
+                        from .models import TblNpwpSellerModel
+                        data_fmi = TblNpwpSellerModel.query.filter_by(id=2).first()
+                        data_fmi_dict = data_fmi.to_dict()
+                        if invoice_dict[invoice_no]['seller_tin'] != data_fmi_dict['tin']:
+                            invoice_dict[invoice_no]['seller_tin'] = data_fmi_dict['tin']
+                            invoice_dict[invoice_no]['seller_nitku'] = data_fmi_dict['nitku']
+                    
+
                 harga_satuan = 0
                 try:
                     qty = int(row['Qty'].strip("'"))
@@ -129,7 +141,18 @@ def parse_invoices(data):
                     list_pembelian = invoice_dict[invoice_no]['pembelian']
                     for no,pembelian in enumerate(list_pembelian):
                         if 'Periode' in pembelian['keterangan']:
-                            invoice_dict[invoice_no]['pembelian'][no]['diskon'] = abs(harga_satuan)
+                            if invoice_dict[invoice_no]['pembelian'][no]['harga_satuan'] > abs(harga_satuan):
+                                invoice_dict[invoice_no]['pembelian'][no]['diskon'] = abs(harga_satuan)
+                                break
+                            else:
+                                for no2,pembelian2 in enumerate(list_pembelian):
+                                    if invoice_dict[invoice_no]['pembelian'][no2]['harga_satuan'] > abs(harga_satuan):
+                                        invoice_dict[invoice_no]['pembelian'][no2]['diskon'] = abs(harga_satuan)
+                                        break
+                            
+
+                        
+
                 elif harga_satuan == 0:
                     pass
                 else:
